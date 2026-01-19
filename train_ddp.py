@@ -88,8 +88,29 @@ def update_ema(ema_model, model, decay=0.9999):
         ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
 
 
+def safe_save(obj, path):
+    """
+    Save checkpoint atomically to avoid corruption.
+    Saves to temp file first, then renames.
+    """
+    path = Path(path)
+    tmp_path = path.with_suffix('.tmp')
+    try:
+        torch.save(obj, tmp_path)
+        tmp_path.rename(path)
+        return True
+    except Exception as e:
+        print_flush(f"  WARNING: Failed to save checkpoint: {e}")
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except:
+                pass
+        return False
+
+
 def save_checkpoint(model, ema_model, optimizer, epoch, loss, best_loss, global_step, path, args):
-    """Save checkpoint."""
+    """Save checkpoint atomically."""
     checkpoint = {
         'epoch': epoch,
         'global_step': global_step,
@@ -100,7 +121,7 @@ def save_checkpoint(model, ema_model, optimizer, epoch, loss, best_loss, global_
         'best_loss': best_loss,
         'args': vars(args),
     }
-    torch.save(checkpoint, path)
+    return safe_save(checkpoint, path)
 
 
 def train(args):

@@ -102,6 +102,27 @@ def update_ema(ema_model, model, decay=0.9999):
         ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
 
 
+def safe_save(obj, path):
+    """
+    Save checkpoint atomically to avoid corruption.
+    Saves to temp file first, then renames.
+    """
+    path = Path(path)
+    tmp_path = path.with_suffix('.tmp')
+    try:
+        torch.save(obj, tmp_path)
+        tmp_path.rename(path)
+        return True
+    except Exception as e:
+        print_flush(f"  WARNING: Failed to save checkpoint: {e}")
+        if tmp_path.exists():
+            try:
+                tmp_path.unlink()
+            except:
+                pass
+        return False
+
+
 # ============================================================================
 # Flow Matching Loss (Rectified Flow)
 # ============================================================================
@@ -383,10 +404,10 @@ def train(args):
                     'best_loss': best_loss,
                     'args': vars(args),
                 }
-                torch.save(ckpt, log_dir / f"teacher_epoch{epoch}.pt")
+                safe_save(ckpt, log_dir / f"teacher_epoch{epoch}.pt")
 
                 if is_best:
-                    torch.save(ckpt, log_dir / "teacher_best.pt")
+                    safe_save(ckpt, log_dir / "teacher_best.pt")
                     print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
 
             # Generate samples

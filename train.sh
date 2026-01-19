@@ -20,7 +20,7 @@ set -e
 # Configuration
 # =============================================================================
 DATA_PATH="./data"
-RESULTS_DIR="./results"
+RESULTS_DIR="/scratch2/jiwan_chung/layerdistill/results"
 MODEL="small"
 BATCH_SIZE=128
 NUM_WORKERS=4
