@@ -40,6 +40,10 @@ STUDENT_EPOCHS=100
 STUDENT_DIR="${RESULTS_DIR}/student"
 LOSS_WEIGHTING="uniform"
 
+# Resume checkpoints (optional)
+TEACHER_RESUME=""
+STUDENT_RESUME=""
+
 # =============================================================================
 # Parse arguments
 # =============================================================================
@@ -76,6 +80,14 @@ while [[ $# -gt 0 ]]; do
             LOSS_WEIGHTING="$2"
             shift 2
             ;;
+        --teacher-resume)
+            TEACHER_RESUME="$2"
+            shift 2
+            ;;
+        --student-resume)
+            STUDENT_RESUME="$2"
+            shift 2
+            ;;
         -h|--help)
             echo "Usage: $0 [options]"
             echo ""
@@ -87,6 +99,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --student-epochs N   Student training epochs (default: 100)"
             echo "  --num-trajectories N Number of trajectories to generate (default: 50000)"
             echo "  --loss-weighting W   Student loss weighting: uniform or snr (default: uniform)"
+            echo "  --teacher-resume P   Resume teacher training from checkpoint"
+            echo "  --student-resume P   Resume student training from checkpoint"
             echo "  -h, --help           Show this help"
             exit 0
             ;;
@@ -154,6 +168,12 @@ train_teacher() {
 
     mkdir -p "$TEACHER_DIR"
 
+    RESUME_ARG=""
+    if [ -n "$TEACHER_RESUME" ]; then
+        RESUME_ARG="--resume $TEACHER_RESUME"
+        echo "  Resuming from: $TEACHER_RESUME"
+    fi
+
     if [ "$NUM_GPUS" -gt 1 ]; then
         torchrun --standalone --nproc_per_node="$NUM_GPUS" \
             train_teacher.py \
@@ -166,7 +186,8 @@ train_teacher() {
             --use-ema \
             --save-every 50 \
             --sample-every 50 \
-            2>&1 | tee "$TEACHER_DIR/train.log"
+            $RESUME_ARG \
+            2>&1 | tee -a "$TEACHER_DIR/train.log"
     else
         python train_teacher.py \
             --data-path "$DATA_PATH" \
@@ -178,7 +199,8 @@ train_teacher() {
             --use-ema \
             --save-every 50 \
             --sample-every 50 \
-            2>&1 | tee "$TEACHER_DIR/train.log"
+            $RESUME_ARG \
+            2>&1 | tee -a "$TEACHER_DIR/train.log"
     fi
 
     echo ""
@@ -237,6 +259,12 @@ train_student() {
 
     mkdir -p "$STUDENT_DIR"
 
+    RESUME_ARG=""
+    if [ -n "$STUDENT_RESUME" ]; then
+        RESUME_ARG="--resume $STUDENT_RESUME"
+        echo "  Resuming from: $STUDENT_RESUME"
+    fi
+
     if [ "$NUM_GPUS" -gt 1 ]; then
         torchrun --standalone --nproc_per_node="$NUM_GPUS" \
             train_ddp.py \
@@ -250,7 +278,8 @@ train_student() {
             --use-ema \
             --save-every 10 \
             --sample-every 10 \
-            2>&1 | tee "$STUDENT_DIR/train.log"
+            $RESUME_ARG \
+            2>&1 | tee -a "$STUDENT_DIR/train.log"
     else
         python train_ddp.py \
             --trajectory-dir "$TRAJECTORY_DIR" \
@@ -263,7 +292,8 @@ train_student() {
             --use-ema \
             --save-every 10 \
             --sample-every 10 \
-            2>&1 | tee "$STUDENT_DIR/train.log"
+            $RESUME_ARG \
+            2>&1 | tee -a "$STUDENT_DIR/train.log"
     fi
 
     echo ""

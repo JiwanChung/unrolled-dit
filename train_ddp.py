@@ -88,7 +88,7 @@ def update_ema(ema_model, model, decay=0.9999):
         ema_params[name].mul_(decay).add_(param.data, alpha=1 - decay)
 
 
-def save_checkpoint(model, ema_model, optimizer, epoch, loss, global_step, path, args):
+def save_checkpoint(model, ema_model, optimizer, epoch, loss, best_loss, global_step, path, args):
     """Save checkpoint."""
     checkpoint = {
         'epoch': epoch,
@@ -97,6 +97,7 @@ def save_checkpoint(model, ema_model, optimizer, epoch, loss, global_step, path,
         'ema_state_dict': ema_model.state_dict() if ema_model else None,
         'optimizer_state_dict': optimizer.state_dict(),
         'loss': loss,
+        'best_loss': best_loss,
         'args': vars(args),
     }
     torch.save(checkpoint, path)
@@ -200,11 +201,26 @@ def train(args):
     # Optimizer
     optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
-    # Training loop
+    # Resume from checkpoint
+    start_epoch = 1
     global_step = 0
     best_loss = float('inf')
 
-    for epoch in range(1, args.epochs + 1):
+    if args.resume:
+        if rank == 0:
+            print_flush(f"Resuming from {args.resume}")
+        ckpt = torch.load(args.resume, map_location=device)
+        model.module.load_state_dict(ckpt['model_state_dict'])
+        optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+        start_epoch = ckpt['epoch'] + 1
+        best_loss = ckpt.get('best_loss', ckpt.get('loss', float('inf')))
+        global_step = ckpt.get('global_step', 0)
+        if ema_model is not None and ckpt.get('ema_state_dict'):
+            ema_model.load_state_dict(ckpt['ema_state_dict'])
+        if rank == 0:
+            print_flush(f"  Resumed from epoch {ckpt['epoch']}, best_loss={best_loss:.6f}")
+
+    for epoch in range(start_epoch, args.epochs + 1):
         model.train()
         train_sampler.set_epoch(epoch)
 
@@ -280,7 +296,7 @@ def train(args):
                 ckpt_path = Path(args.log_dir) / f"checkpoint_epoch{epoch}.pt"
                 save_checkpoint(
                     model, ema_model, optimizer, epoch,
-                    avg_loss_global, global_step, ckpt_path, args
+                    avg_loss_global, best_loss, global_step, ckpt_path, args
                 )
                 print_flush(f"  Saved checkpoint: {ckpt_path}")
 
@@ -288,7 +304,7 @@ def train(args):
                     best_path = Path(args.log_dir) / "checkpoint_best.pt"
                     save_checkpoint(
                         model, ema_model, optimizer, epoch,
-                        avg_loss_global, global_step, best_path, args
+                        avg_loss_global, best_loss, global_step, best_path, args
                     )
                     print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
 
@@ -357,11 +373,16 @@ def main():
     parser.add_argument("--save-every", type=int, default=10)
     parser.add_argument("--sample-every", type=int, default=10)
 
+    # Resume
+    parser.add_argument("--resume", type=str, default=None,
+                        help="Path to checkpoint to resume from")
+
     args = parser.parse_args()
 
-    # Add timestamp to log dir
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    args.log_dir = f"{args.log_dir}_{timestamp}"
+    # Add timestamp to log dir (only if not resuming)
+    if not args.resume:
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        args.log_dir = f"{args.log_dir}_{timestamp}"
 
     train(args)
 

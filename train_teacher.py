@@ -297,11 +297,26 @@ def train(args):
     if rank == 0:
         log_dir.mkdir(parents=True, exist_ok=True)
 
-    # Training
+    # Resume from checkpoint
+    start_epoch = 1
     global_step = 0
     best_loss = float('inf')
 
-    for epoch in range(1, args.epochs + 1):
+    if args.resume:
+        if rank == 0:
+            print_flush(f"Resuming from {args.resume}")
+        ckpt = torch.load(args.resume, map_location=device)
+        model.module.load_state_dict(ckpt['model_state_dict'])
+        optimizer.load_state_dict(ckpt['optimizer_state_dict'])
+        start_epoch = ckpt['epoch'] + 1
+        best_loss = ckpt.get('loss', float('inf'))
+        global_step = ckpt.get('global_step', 0)
+        if ema_model is not None and ckpt.get('ema_state_dict'):
+            ema_model.load_state_dict(ckpt['ema_state_dict'])
+        if rank == 0:
+            print_flush(f"  Resumed from epoch {ckpt['epoch']}, loss={best_loss:.6f}")
+
+    for epoch in range(start_epoch, args.epochs + 1):
         model.train()
         train_sampler.set_epoch(epoch)
 
@@ -351,10 +366,12 @@ def train(args):
             if epoch % args.save_every == 0 or is_best:
                 ckpt = {
                     'epoch': epoch,
+                    'global_step': global_step,
                     'model_state_dict': model.module.state_dict(),
                     'ema_state_dict': ema_model.state_dict() if ema_model else None,
                     'optimizer_state_dict': optimizer.state_dict(),
                     'loss': avg_loss_global,
+                    'best_loss': best_loss,
                     'args': vars(args),
                 }
                 torch.save(ckpt, log_dir / f"teacher_epoch{epoch}.pt")
@@ -406,6 +423,8 @@ def main():
     parser.add_argument("--save-every", type=int, default=50)
     parser.add_argument("--sample-every", type=int, default=50)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--resume", type=str, default=None,
+                        help="Path to checkpoint to resume from")
 
     args = parser.parse_args()
     train(args)
