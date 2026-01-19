@@ -297,24 +297,33 @@ def train(args):
     if rank == 0:
         log_dir.mkdir(parents=True, exist_ok=True)
 
+    # Auto-resume: find latest checkpoint if not specified
+    resume_path = args.resume
+    if resume_path is None and args.auto_resume:
+        ckpts = sorted(log_dir.glob("teacher_epoch*.pt"))
+        if ckpts:
+            resume_path = str(ckpts[-1])
+            if rank == 0:
+                print_flush(f"Auto-resume: found {resume_path}")
+
     # Resume from checkpoint
     start_epoch = 1
     global_step = 0
     best_loss = float('inf')
 
-    if args.resume:
+    if resume_path:
         if rank == 0:
-            print_flush(f"Resuming from {args.resume}")
-        ckpt = torch.load(args.resume, map_location=device)
+            print_flush(f"Resuming from {resume_path}")
+        ckpt = torch.load(resume_path, map_location=device)
         model.module.load_state_dict(ckpt['model_state_dict'])
         optimizer.load_state_dict(ckpt['optimizer_state_dict'])
         start_epoch = ckpt['epoch'] + 1
-        best_loss = ckpt.get('loss', float('inf'))
+        best_loss = ckpt.get('best_loss', ckpt.get('loss', float('inf')))
         global_step = ckpt.get('global_step', 0)
         if ema_model is not None and ckpt.get('ema_state_dict'):
             ema_model.load_state_dict(ckpt['ema_state_dict'])
         if rank == 0:
-            print_flush(f"  Resumed from epoch {ckpt['epoch']}, loss={best_loss:.6f}")
+            print_flush(f"  Resumed from epoch {ckpt['epoch']}, best_loss={best_loss:.6f}")
 
     for epoch in range(start_epoch, args.epochs + 1):
         model.train()
@@ -425,6 +434,10 @@ def main():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--resume", type=str, default=None,
                         help="Path to checkpoint to resume from")
+    parser.add_argument("--auto-resume", action="store_true", default=True,
+                        help="Auto-resume from latest checkpoint (default: True)")
+    parser.add_argument("--no-auto-resume", action="store_false", dest="auto_resume",
+                        help="Disable auto-resume")
 
     args = parser.parse_args()
     train(args)

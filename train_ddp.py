@@ -201,15 +201,27 @@ def train(args):
     # Optimizer
     optimizer = AdamW(model.parameters(), lr=args.lr, weight_decay=args.weight_decay)
 
+    # Auto-resume: find latest checkpoint if not specified
+    log_dir_path = Path(args.log_dir)
+    log_dir_path.mkdir(parents=True, exist_ok=True)
+
+    resume_path = args.resume
+    if resume_path is None and args.auto_resume:
+        ckpts = sorted(log_dir_path.glob("checkpoint_epoch*.pt"))
+        if ckpts:
+            resume_path = str(ckpts[-1])
+            if rank == 0:
+                print_flush(f"Auto-resume: found {resume_path}")
+
     # Resume from checkpoint
     start_epoch = 1
     global_step = 0
     best_loss = float('inf')
 
-    if args.resume:
+    if resume_path:
         if rank == 0:
-            print_flush(f"Resuming from {args.resume}")
-        ckpt = torch.load(args.resume, map_location=device)
+            print_flush(f"Resuming from {resume_path}")
+        ckpt = torch.load(resume_path, map_location=device)
         model.module.load_state_dict(ckpt['model_state_dict'])
         optimizer.load_state_dict(ckpt['optimizer_state_dict'])
         start_epoch = ckpt['epoch'] + 1
@@ -376,13 +388,15 @@ def main():
     # Resume
     parser.add_argument("--resume", type=str, default=None,
                         help="Path to checkpoint to resume from")
+    parser.add_argument("--auto-resume", action="store_true", default=True,
+                        help="Auto-resume from latest checkpoint (default: True)")
+    parser.add_argument("--no-auto-resume", action="store_false", dest="auto_resume",
+                        help="Disable auto-resume")
 
     args = parser.parse_args()
 
-    # Add timestamp to log dir (only if not resuming)
-    if not args.resume:
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        args.log_dir = f"{args.log_dir}_{timestamp}"
+    # Don't add timestamp - use fixed log_dir for auto-resume to work
+    # The log_dir should be set explicitly or via train.sh
 
     train(args)
 
