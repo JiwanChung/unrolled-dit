@@ -228,9 +228,9 @@ def train(args):
 
     resume_path = args.resume
     if resume_path is None and args.auto_resume:
-        ckpts = sorted(log_dir_path.glob("checkpoint_epoch*.pt"))
-        if ckpts:
-            resume_path = str(ckpts[-1])
+        latest_ckpt = log_dir_path / "checkpoint_latest.pt"
+        if latest_ckpt.exists():
+            resume_path = str(latest_ckpt)
             if rank == 0:
                 print_flush(f"Auto-resume: found {resume_path}")
 
@@ -320,26 +320,25 @@ def train(args):
             print_flush(f"  Average loss: {avg_loss_global:.6f}")
             print_flush(f"  Layer losses: {[f'{l:.4f}' for l in avg_layer_losses]}")
 
-            # Save checkpoint
+            # Save checkpoint (only keep best and latest)
             is_best = avg_loss_global < best_loss
             if is_best:
                 best_loss = avg_loss_global
 
-            if epoch % args.save_every == 0 or is_best:
-                ckpt_path = Path(args.log_dir) / f"checkpoint_epoch{epoch}.pt"
+            # Always save latest (overwrite)
+            latest_path = Path(args.log_dir) / "checkpoint_latest.pt"
+            save_checkpoint(
+                model, ema_model, optimizer, epoch,
+                avg_loss_global, best_loss, global_step, latest_path, args
+            )
+
+            if is_best:
+                best_path = Path(args.log_dir) / "checkpoint_best.pt"
                 save_checkpoint(
                     model, ema_model, optimizer, epoch,
-                    avg_loss_global, best_loss, global_step, ckpt_path, args
+                    avg_loss_global, best_loss, global_step, best_path, args
                 )
-                print_flush(f"  Saved checkpoint: {ckpt_path}")
-
-                if is_best:
-                    best_path = Path(args.log_dir) / "checkpoint_best.pt"
-                    save_checkpoint(
-                        model, ema_model, optimizer, epoch,
-                        avg_loss_global, best_loss, global_step, best_path, args
-                    )
-                    print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
+                print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
 
             # Generate samples
             if epoch % args.sample_every == 0:

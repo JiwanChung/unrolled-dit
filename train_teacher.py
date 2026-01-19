@@ -321,9 +321,9 @@ def train(args):
     # Auto-resume: find latest checkpoint if not specified
     resume_path = args.resume
     if resume_path is None and args.auto_resume:
-        ckpts = sorted(log_dir.glob("teacher_epoch*.pt"))
-        if ckpts:
-            resume_path = str(ckpts[-1])
+        latest_ckpt = log_dir / "teacher_latest.pt"
+        if latest_ckpt.exists():
+            resume_path = str(latest_ckpt)
             if rank == 0:
                 print_flush(f"Auto-resume: found {resume_path}")
 
@@ -388,27 +388,27 @@ def train(args):
         if rank == 0:
             print_flush(f"\nEpoch {epoch}: loss = {avg_loss_global:.6f}")
 
-            # Save checkpoint
+            # Save checkpoint (only keep best and latest)
             is_best = avg_loss_global < best_loss
             if is_best:
                 best_loss = avg_loss_global
 
-            if epoch % args.save_every == 0 or is_best:
-                ckpt = {
-                    'epoch': epoch,
-                    'global_step': global_step,
-                    'model_state_dict': model.module.state_dict(),
-                    'ema_state_dict': ema_model.state_dict() if ema_model else None,
-                    'optimizer_state_dict': optimizer.state_dict(),
-                    'loss': avg_loss_global,
-                    'best_loss': best_loss,
-                    'args': vars(args),
-                }
-                safe_save(ckpt, log_dir / f"teacher_epoch{epoch}.pt")
+            ckpt = {
+                'epoch': epoch,
+                'global_step': global_step,
+                'model_state_dict': model.module.state_dict(),
+                'ema_state_dict': ema_model.state_dict() if ema_model else None,
+                'optimizer_state_dict': optimizer.state_dict(),
+                'loss': avg_loss_global,
+                'best_loss': best_loss,
+                'args': vars(args),
+            }
+            # Always save latest (overwrite)
+            safe_save(ckpt, log_dir / "teacher_latest.pt")
 
-                if is_best:
-                    safe_save(ckpt, log_dir / "teacher_best.pt")
-                    print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
+            if is_best:
+                safe_save(ckpt, log_dir / "teacher_best.pt")
+                print_flush(f"  New best model! Loss: {avg_loss_global:.6f}")
 
             # Generate samples
             if epoch % args.sample_every == 0:
