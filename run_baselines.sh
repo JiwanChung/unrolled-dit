@@ -86,6 +86,8 @@ run_direct() {
         exit 1
     fi
 
+    mkdir -p "${RESULTS_DIR}/baseline_direct"
+
     NUM_GPUS=$(nvidia-smi --query-gpu=name --format=csv,noheader 2>/dev/null | wc -l || echo "1")
 
     if [ "$NUM_GPUS" -gt 1 ]; then

@@ -97,7 +97,8 @@ def train(args):
         model = UnrolledSiT_B(num_classes=10)
 
     model = model.to(device)
-    model = DDP(model, device_ids=[local_rank])
+    # find_unused_parameters=True needed because UnrolledSiT has unused params
+    model = DDP(model, device_ids=[local_rank], find_unused_parameters=True)
 
     if rank == 0:
         num_params = sum(p.numel() for p in model.parameters())
