@@ -18,7 +18,7 @@ from torchvision import datasets, transforms
 import os
 
 from unrolled_sit import UnrolledSiT_S, UnrolledSiT_B
-from trajectory_dataset import TrajectoryDataset
+from trajectory_dataset import TeacherTrajectoryDataset
 
 # FID computation
 try:
@@ -174,7 +174,8 @@ def analyze_intermediates(model, dataset, device, num_samples=100):
 
         _, intermediates = model(x_input, label, return_intermediates=True)
 
-        for j, (pred, target) in enumerate(zip(intermediates, targets)):
+        for j, pred in enumerate(intermediates):
+            target = targets[:, j]  # (1, C, H, W)
             mse = F.mse_loss(pred, target).item()
             mse_accum[j] += mse
 
@@ -274,13 +275,16 @@ def main(args):
     if args.trajectory:
         visualize_trajectory(model, device, output_dir / "trajectory.png")
 
-    # Analyze intermediates
+    # Analyze intermediates (requires pre-generated trajectories)
     if args.analyze:
-        dataset = TrajectoryDataset("./data", num_steps=model.depth, train=False, fix_noise=True)
-        results = analyze_intermediates(model, dataset, device, num_samples=args.num_samples)
-        print("\nMSE per layer:")
-        for i, mse in enumerate(results['mse_per_layer']):
-            print(f"  Layer {i+1}: {mse:.6f}")
+        if args.trajectory_dir and Path(args.trajectory_dir).exists():
+            dataset = TeacherTrajectoryDataset(args.trajectory_dir)
+            results = analyze_intermediates(model, dataset, device, num_samples=args.num_samples)
+            print("\nMSE per layer:")
+            for i, mse in enumerate(results['mse_per_layer']):
+                print(f"  Layer {i+1}: {mse:.6f}")
+        else:
+            print("Skipping analysis: --trajectory-dir not provided or doesn't exist")
 
     # Per-class samples
     if args.per_class:
@@ -296,6 +300,7 @@ if __name__ == "__main__":
     parser.add_argument("--checkpoint", type=str, required=True, help="Path to model checkpoint")
     parser.add_argument("--model", type=str, default="small", choices=["small", "base"])
     parser.add_argument("--output-dir", type=str, default="./eval_results")
+    parser.add_argument("--trajectory-dir", type=str, default=None, help="Path to trajectories (for --analyze)")
     parser.add_argument("--batch-size", type=int, default=256)
     parser.add_argument("--num-samples", type=int, default=10000)
 
