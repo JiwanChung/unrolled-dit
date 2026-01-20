@@ -288,8 +288,19 @@ case $STEP in
         train_student
         ;;
     all)
-        train_teacher
-        generate_trajectories
+        # Skip steps that are already complete
+        if [ -f "$TEACHER_DIR/teacher_best.pt" ]; then
+            echo "[$(date '+%H:%M:%S')] Teacher already trained, skipping..."
+        else
+            train_teacher
+        fi
+
+        if [ -f "$TRAJECTORY_DIR/metadata.json" ]; then
+            echo "[$(date '+%H:%M:%S')] Trajectories already generated, skipping..."
+        else
+            generate_trajectories
+        fi
+
         train_student
         ;;
     *)
