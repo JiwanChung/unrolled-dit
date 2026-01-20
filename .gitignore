@@ -9,3 +9,6 @@ data/
 trajectories/
 *.pt
 *.pth
+
+# Output logs
+output*.txt
