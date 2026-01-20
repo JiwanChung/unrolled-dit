@@ -210,16 +210,16 @@ class UnrolledSiT(nn.Module):
         self._precompute_time_embeddings()
 
     def _precompute_time_embeddings(self):
-        """Precompute time embeddings for each block's fixed timestep."""
+        """Precompute time embeddings for each timestep including t=1."""
         with torch.no_grad():
-            # Each block i uses timestep t_i (the "input" time for that block)
+            # Precompute embeddings for all timesteps: t_0, t_1, ..., t_{depth} (including t=1)
             t_embs = []
-            for i in range(self.depth):
+            for i in range(self.depth + 1):  # +1 to include t=1
                 t = self.timesteps[i:i+1]  # Shape (1,)
                 t_emb = self.t_embedder(t)  # Shape (1, hidden_size)
                 t_embs.append(t_emb)
-            # Stack and register as buffer
-            self.register_buffer('fixed_t_embs', torch.cat(t_embs, dim=0))  # (depth, hidden_size)
+            # Stack and register as buffer: (depth+1, hidden_size)
+            self.register_buffer('fixed_t_embs', torch.cat(t_embs, dim=0))
 
     def initialize_weights(self):
         def _basic_init(module):
@@ -311,7 +311,8 @@ class UnrolledSiT(nn.Module):
 
         # Process through each block with its fixed timestep
         for i, block in enumerate(self.blocks):
-            # Get precomputed time embedding for this block
+            # Block i operates on transition from t_i to t_{i+1}
+            # Condition on t_i (the "input" time for this block)
             t_emb = self.fixed_t_embs[i:i+1].expand(x.shape[0], -1)  # (N, hidden_size)
 
             # Conditioning = time + class
@@ -322,14 +323,14 @@ class UnrolledSiT(nn.Module):
 
             # Save intermediate if requested (for layer-wise supervision)
             if return_intermediates:
-                # Project current hidden state to pixel space for supervision
-                c_final = self.fixed_t_embs[i:i+1].expand(x.shape[0], -1) + y_emb
-                x_proj = self.final_layer(x, c_final)
+                # Project to pixel space - use t_{i+1} since output should match trajectory[i+1]
+                c_out = self.fixed_t_embs[i+1:i+2].expand(x.shape[0], -1) + y_emb
+                x_proj = self.final_layer(x, c_out)
                 x_img = self.unpatchify(x_proj)
                 intermediates.append(x_img)
 
-        # Final projection to output
-        c_final = self.fixed_t_embs[-1:].expand(x.shape[0], -1) + y_emb
+        # Final projection to output - use t=1 embedding (last in fixed_t_embs)
+        c_final = self.fixed_t_embs[self.depth:self.depth+1].expand(x.shape[0], -1) + y_emb
         x = self.final_layer(x, c_final)
         out = self.unpatchify(x)  # (N, C, H, W)
 
