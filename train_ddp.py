@@ -279,9 +279,12 @@ def train(args):
             _, intermediates = model(x_input, labels, return_intermediates=True)
 
             # Layer-wise loss
+            # targets shape: (B, num_steps, C, H, W)
+            # intermediates: list of (B, C, H, W) tensors
             total_loss = 0
             layer_losses = []
-            for i, (pred, target) in enumerate(zip(intermediates, targets)):
+            for i, pred in enumerate(intermediates):
+                target = targets[:, i]  # (B, C, H, W)
                 layer_loss = F.mse_loss(pred, target)
                 layer_losses.append(layer_loss.item())
                 total_loss = total_loss + loss_weights[i] * layer_loss

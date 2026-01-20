@@ -1,0 +1,179 @@
+============================================================
+  Unrolled SiT - Distillation Pipeline
+============================================================
+
+  Step:              all
+  GPUs:              0,1 (2 total)
+  Model:             small
+
+  Teacher epochs:    500
+  Trajectories:      50000
+  Student epochs:    100
+  Loss weighting:    uniform
+
+============================================================
+
+
+[08:24:32] ========== STEP 1: Train Teacher ==========
+
+W0120 08:24:34.304000 68309 site-packages/torch/distributed/run.py:803] 
+W0120 08:24:34.304000 68309 site-packages/torch/distributed/run.py:803] *****************************************
+W0120 08:24:34.304000 68309 site-packages/torch/distributed/run.py:803] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0120 08:24:34.304000 68309 site-packages/torch/distributed/run.py:803] *****************************************
+============================================================
+  SiT Teacher Training on CIFAR-10
+============================================================
+  GPUs: 2
+  Model: small
+  Batch size: 128 x 2 = 256
+  Epochs: 500
+  Learning rate: 0.0001
+============================================================
+  Parameters: 32,527,920
+/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torchvision/datasets/cifar.py:83: VisibleDeprecationWarning: dtype(): align should be passed as Python or NumPy boolean but got `align=0`. Did you mean to pass a tuple to create a subarray type? (Deprecated NumPy 2.4)
+  entry = pickle.load(f, encoding="latin1")
+/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torchvision/datasets/cifar.py:83: VisibleDeprecationWarning: dtype(): align should be passed as Python or NumPy boolean but got `align=0`. Did you mean to pass a tuple to create a subarray type? (Deprecated NumPy 2.4)
+  entry = pickle.load(f, encoding="latin1")
+  Dataset: 50,000 images
+  Batches/epoch: 195
+Auto-resume: found /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_latest.pt
+Resuming from /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_latest.pt
+  Resumed from epoch 500, best_loss=0.173030
+
+Teacher training complete!
+Best loss: 0.173030
+Checkpoint: /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_best.pt
+
+[08:24:41] Teacher training complete!
+  Checkpoint: /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_best.pt
+
+[08:24:41] ========== STEP 2: Generate Trajectories ==========
+
+Using device: cuda
+Loading teacher from /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_best.pt
+Loaded EMA weights from /scratch2/jiwan_chung/layerdistill/results/teacher/teacher_best.pt
+/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torchvision/datasets/cifar.py:83: VisibleDeprecationWarning: dtype(): align should be passed as Python or NumPy boolean but got `align=0`. Did you mean to pass a tuple to create a subarray type? (Deprecated NumPy 2.4)
+  entry = pickle.load(f, encoding="latin1")
+Generating 50000 trajectories with 12 steps each
+CFG scale: 1.5
+Output directory: /scratch2/jiwan_chung/layerdistill/results/trajectories
+Generating trajectories:   0%|          | 0/50000 [00:00<?, ?it/s]
+Saved trajectory visualization to /scratch2/jiwan_chung/layerdistill/results/trajectories/trajectory_example.png
+Generating trajectories:   1%|          | 256/50000 [00:01<05:58, 138.75it/s]Generating trajectories:   1%|          | 512/50000 [00:03<05:11, 158.64it/s]Generating trajectories:   2%|▏         | 768/50000 [00:04<04:56, 166.13it/s]Generating trajectories:   2%|▏         | 1024/50000 [00:06<04:48, 170.01it/s]Generating trajectories:   3%|▎         | 1280/50000 [00:07<04:43, 171.96it/s]Generating trajectories:   3%|▎         | 1536/50000 [00:09<04:40, 173.06it/s]Generating trajectories:   4%|▎         | 1792/50000 [00:10<04:36, 174.29it/s]Generating trajectories:   4%|▍         | 2048/50000 [00:12<04:33, 175.07it/s]Generating trajectories:   5%|▍         | 2304/50000 [00:13<04:32, 175.24it/s]Generating trajectories:   5%|▌         | 2560/50000 [00:14<04:30, 175.33it/s]Generating trajectories:   6%|▌         | 2816/50000 [00:16<04:28, 175.43it/s]Generating trajectories:   6%|▌         | 3072/50000 [00:17<04:27, 175.42it/s]Generating trajectories:   7%|▋         | 3328/50000 [00:19<04:26, 175.40it/s]Generating trajectories:   7%|▋         | 3584/50000 [00:20<04:24, 175.42it/s]Generating trajectories:   8%|▊         | 3840/50000 [00:22<04:23, 175.28it/s]Generating trajectories:   8%|▊         | 4096/50000 [00:23<04:22, 175.09it/s]Generating trajectories:   9%|▊         | 4352/50000 [00:25<04:20, 174.99it/s]Generating trajectories:   9%|▉         | 4608/50000 [00:26<04:19, 174.87it/s]Generating trajectories:  10%|▉         | 4864/50000 [00:28<04:18, 174.81it/s]Generating trajectories:  10%|█         | 5120/50000 [00:29<04:16, 174.69it/s]Generating trajectories:  11%|█         | 5376/50000 [00:31<04:15, 174.53it/s]Generating trajectories:  11%|█▏        | 5632/50000 [00:32<04:14, 174.35it/s]Generating trajectories:  12%|█▏        | 5888/50000 [00:33<04:13, 174.25it/s]Generating trajectories:  12%|█▏        | 6144/50000 [00:35<04:11, 174.19it/s]Generating trajectories:  13%|█▎        | 6400/50000 [00:36<04:10, 173.79it/s]Generating trajectories:  13%|█▎        | 6656/50000 [00:38<04:09, 173.72it/s]Generating trajectories:  14%|█▍        | 6912/50000 [00:39<04:07, 173.81it/s]Generating trajectories:  14%|█▍        | 7168/50000 [00:41<04:06, 173.84it/s]Generating trajectories:  15%|█▍        | 7424/50000 [00:42<04:05, 173.65it/s]Generating trajectories:  15%|█▌        | 7680/50000 [00:44<04:04, 173.36it/s]Generating trajectories:  16%|█▌        | 7936/50000 [00:45<04:02, 173.18it/s]Generating trajectories:  16%|█▋        | 8192/50000 [00:47<04:01, 173.07it/s]Generating trajectories:  17%|█▋        | 8448/50000 [00:48<04:00, 173.02it/s]Generating trajectories:  17%|█▋        | 8704/50000 [00:50<03:59, 172.78it/s]Generating trajectories:  18%|█▊        | 8960/50000 [00:51<03:57, 172.76it/s]Generating trajectories:  18%|█▊        | 9216/50000 [00:53<03:56, 172.66it/s]Generating trajectories:  19%|█▉        | 9472/50000 [00:54<03:54, 172.49it/s]Generating trajectories:  19%|█▉        | 9728/50000 [00:56<03:53, 172.38it/s]Generating trajectories:  20%|█▉        | 9984/50000 [00:57<03:52, 172.40it/s]Generating trajectories:  20%|██        | 10240/50000 [00:59<03:50, 172.22it/s]Generating trajectories:  21%|██        | 10496/50000 [01:00<03:49, 172.25it/s]Generating trajectories:  22%|██▏       | 10752/50000 [01:02<03:47, 172.28it/s]Generating trajectories:  22%|██▏       | 11008/50000 [01:03<03:46, 172.22it/s]Generating trajectories:  23%|██▎       | 11264/50000 [01:05<03:45, 172.11it/s]Generating trajectories:  23%|██▎       | 11520/50000 [01:06<03:43, 172.01it/s]Generating trajectories:  24%|██▎       | 11776/50000 [01:08<03:42, 171.91it/s]Generating trajectories:  24%|██▍       | 12032/50000 [01:09<03:41, 171.74it/s]Generating trajectories:  25%|██▍       | 12288/50000 [01:11<03:39, 171.58it/s]Generating trajectories:  25%|██▌       | 12544/50000 [01:12<03:38, 171.47it/s]Generating trajectories:  26%|██▌       | 12800/50000 [01:14<03:36, 171.46it/s]Generating trajectories:  26%|██▌       | 13056/50000 [01:15<03:35, 171.35it/s]Generating trajectories:  27%|██▋       | 13312/50000 [01:17<03:34, 171.23it/s]Generating trajectories:  27%|██▋       | 13568/50000 [01:18<03:32, 171.09it/s]Generating trajectories:  28%|██▊       | 13824/50000 [01:20<03:32, 170.60it/s]Generating trajectories:  28%|██▊       | 14080/50000 [01:21<03:30, 170.72it/s]Generating trajectories:  29%|██▊       | 14336/50000 [01:23<03:28, 170.90it/s]Generating trajectories:  29%|██▉       | 14592/50000 [01:24<03:27, 170.74it/s]Generating trajectories:  30%|██▉       | 14848/50000 [01:26<03:25, 170.74it/s]Generating trajectories:  30%|███       | 15104/50000 [01:27<03:24, 170.55it/s]Generating trajectories:  31%|███       | 15360/50000 [01:29<03:22, 170.68it/s]Generating trajectories:  31%|███       | 15616/50000 [01:30<03:21, 170.68it/s]Generating trajectories:  32%|███▏      | 15872/50000 [01:32<03:20, 170.63it/s]Generating trajectories:  32%|███▏      | 16128/50000 [01:33<03:18, 170.57it/s]Generating trajectories:  33%|███▎      | 16384/50000 [01:35<03:16, 170.66it/s]Generating trajectories:  33%|███▎      | 16640/50000 [01:36<03:15, 170.55it/s]Generating trajectories:  34%|███▍      | 16896/50000 [01:38<03:14, 170.59it/s]Generating trajectories:  34%|███▍      | 17152/50000 [01:39<03:12, 170.77it/s]Generating trajectories:  35%|███▍      | 17408/50000 [01:41<03:10, 170.72it/s]Generating trajectories:  35%|███▌      | 17664/50000 [01:42<03:09, 170.57it/s]Generating trajectories:  36%|███▌      | 17920/50000 [01:44<03:08, 170.56it/s]Generating trajectories:  36%|███▋      | 18176/50000 [01:45<03:06, 170.50it/s]Generating trajectories:  37%|███▋      | 18432/50000 [01:47<03:05, 170.58it/s]Generating trajectories:  37%|███▋      | 18688/50000 [01:48<03:03, 170.49it/s]Generating trajectories:  38%|███▊      | 18944/50000 [01:50<03:02, 170.50it/s]Generating trajectories:  38%|███▊      | 19200/50000 [01:51<03:00, 170.36it/s]Generating trajectories:  39%|███▉      | 19456/50000 [01:53<02:59, 170.31it/s]Generating trajectories:  39%|███▉      | 19712/50000 [01:54<02:57, 170.29it/s]Generating trajectories:  40%|███▉      | 19968/50000 [01:56<02:56, 170.20it/s]Generating trajectories:  40%|████      | 20224/50000 [01:57<02:55, 170.03it/s]Generating trajectories:  41%|████      | 20480/50000 [01:59<02:53, 170.09it/s]Generating trajectories:  41%|████▏     | 20736/50000 [02:00<02:52, 170.02it/s]Generating trajectories:  42%|████▏     | 20992/50000 [02:02<02:50, 170.12it/s]Generating trajectories:  42%|████▏     | 21248/50000 [02:03<02:49, 170.07it/s]Generating trajectories:  43%|████▎     | 21504/50000 [02:05<02:47, 170.18it/s]Generating trajectories:  44%|████▎     | 21760/50000 [02:06<02:45, 170.15it/s]Generating trajectories:  44%|████▍     | 22016/50000 [02:08<02:44, 170.24it/s]Generating trajectories:  45%|████▍     | 22272/50000 [02:09<02:42, 170.19it/s]Generating trajectories:  45%|████▌     | 22528/50000 [02:11<02:41, 170.22it/s]Generating trajectories:  46%|████▌     | 22784/50000 [02:12<02:40, 169.68it/s]Generating trajectories:  46%|████▌     | 23040/50000 [02:14<02:38, 169.68it/s]Generating trajectories:  47%|████▋     | 23296/50000 [02:15<02:37, 169.35it/s]Generating trajectories:  47%|████▋     | 23552/50000 [02:17<02:35, 169.57it/s]Generating trajectories:  48%|████▊     | 23808/50000 [02:18<02:34, 169.68it/s]Generating trajectories:  48%|████▊     | 24064/50000 [02:20<02:32, 169.82it/s]Generating trajectories:  49%|████▊     | 24320/50000 [02:21<02:31, 169.86it/s]Generating trajectories:  49%|████▉     | 24576/50000 [02:23<02:29, 169.94it/s]Generating trajectories:  50%|████▉     | 24832/50000 [02:24<02:28, 169.89it/s]Generating trajectories:  50%|█████     | 25088/50000 [02:26<02:26, 169.87it/s]Generating trajectories:  51%|█████     | 25344/50000 [02:27<02:25, 169.88it/s]Generating trajectories:  51%|█████     | 25600/50000 [02:29<02:23, 169.77it/s]Generating trajectories:  52%|█████▏    | 25856/50000 [02:30<02:22, 169.86it/s]Generating trajectories:  52%|█████▏    | 26112/50000 [02:32<02:20, 169.87it/s]Generating trajectories:  53%|█████▎    | 26368/50000 [02:33<02:19, 169.92it/s]Generating trajectories:  53%|█████▎    | 26624/50000 [02:35<02:17, 169.96it/s]Generating trajectories:  54%|█████▍    | 26880/50000 [02:36<02:15, 170.03it/s]Generating trajectories:  54%|█████▍    | 27136/50000 [02:38<02:14, 169.99it/s]Generating trajectories:  55%|█████▍    | 27392/50000 [02:39<02:12, 170.07it/s]Generating trajectories:  55%|█████▌    | 27648/50000 [02:41<02:11, 169.99it/s]Generating trajectories:  56%|█████▌    | 27904/50000 [02:42<02:10, 169.81it/s]Generating trajectories:  56%|█████▋    | 28160/50000 [02:44<02:08, 169.87it/s]Generating trajectories:  57%|█████▋    | 28416/50000 [02:45<02:07, 169.93it/s]Generating trajectories:  57%|█████▋    | 28672/50000 [02:47<02:05, 169.93it/s]Generating trajectories:  58%|█████▊    | 28928/50000 [02:48<02:03, 170.04it/s]Generating trajectories:  58%|█████▊    | 29184/50000 [02:50<02:02, 170.05it/s]Generating trajectories:  59%|█████▉    | 29440/50000 [02:51<02:00, 169.99it/s]Generating trajectories:  59%|█████▉    | 29696/50000 [02:53<01:59, 169.98it/s]Generating trajectories:  60%|█████▉    | 29952/50000 [02:54<01:57, 170.00it/s]Generating trajectories:  60%|██████    | 30208/50000 [02:56<01:56, 169.85it/s]Generating trajectories:  61%|██████    | 30464/50000 [02:57<01:55, 169.86it/s]Generating trajectories:  61%|██████▏   | 30720/50000 [02:59<01:53, 169.58it/s]Generating trajectories:  62%|██████▏   | 30976/50000 [03:00<01:52, 169.78it/s]Generating trajectories:  62%|██████▏   | 31232/50000 [03:02<01:50, 169.96it/s]Generating trajectories:  63%|██████▎   | 31488/50000 [03:03<01:49, 169.83it/s]Generating trajectories:  63%|██████▎   | 31744/50000 [03:05<01:47, 169.91it/s]Generating trajectories:  64%|██████▍   | 32000/50000 [03:06<01:45, 169.91it/s]Generating trajectories:  65%|██████▍   | 32256/50000 [03:08<01:44, 169.97it/s]Generating trajectories:  65%|██████▌   | 32512/50000 [03:09<01:42, 169.89it/s]Generating trajectories:  66%|██████▌   | 32768/50000 [03:11<01:41, 169.98it/s]Generating trajectories:  66%|██████▌   | 33024/50000 [03:12<01:39, 169.91it/s]Generating trajectories:  67%|██████▋   | 33280/50000 [03:14<01:38, 169.87it/s]Generating trajectories:  67%|██████▋   | 33536/50000 [03:15<01:36, 169.86it/s]Generating trajectories:  68%|██████▊   | 33792/50000 [03:17<01:35, 170.01it/s]Generating trajectories:  68%|██████▊   | 34048/50000 [03:18<01:33, 169.94it/s]Generating trajectories:  69%|██████▊   | 34304/50000 [03:20<01:32, 169.92it/s]Generating trajectories:  69%|██████▉   | 34560/50000 [03:21<01:30, 169.89it/s]Generating trajectories:  70%|██████▉   | 34816/50000 [03:23<01:29, 170.00it/s]Generating trajectories:  70%|███████   | 35072/50000 [03:24<01:27, 169.93it/s]Generating trajectories:  71%|███████   | 35328/50000 [03:26<01:26, 169.99it/s]Generating trajectories:  71%|███████   | 35584/50000 [03:27<01:24, 169.99it/s]Generating trajectories:  72%|███████▏  | 35840/50000 [03:29<01:23, 169.92it/s]Generating trajectories:  72%|███████▏  | 36096/50000 [03:31<01:21, 169.77it/s]Generating trajectories:  73%|███████▎  | 36352/50000 [03:32<01:20, 169.78it/s]Generating trajectories:  73%|███████▎  | 36608/50000 [03:34<01:18, 169.80it/s]Generating trajectories:  74%|███████▎  | 36864/50000 [03:35<01:17, 169.79it/s]Generating trajectories:  74%|███████▍  | 37120/50000 [03:37<01:15, 169.66it/s]Generating trajectories:  75%|███████▍  | 37376/50000 [03:38<01:14, 169.76it/s]Generating trajectories:  75%|███████▌  | 37632/50000 [03:40<01:12, 169.76it/s]Generating trajectories:  76%|███████▌  | 37888/50000 [03:41<01:11, 169.85it/s]Generating trajectories:  76%|███████▋  | 38144/50000 [03:43<01:09, 169.84it/s]Generating trajectories:  77%|███████▋  | 38400/50000 [03:44<01:08, 169.90it/s]Generating trajectories:  77%|███████▋  | 38656/50000 [03:46<01:06, 169.87it/s]Generating trajectories:  78%|███████▊  | 38912/50000 [03:47<01:05, 169.81it/s]Generating trajectories:  78%|███████▊  | 39168/50000 [03:49<01:03, 169.85it/s]Generating trajectories:  79%|███████▉  | 39424/50000 [03:50<01:02, 169.83it/s]Generating trajectories:  79%|███████▉  | 39680/50000 [03:52<01:00, 169.84it/s]Generating trajectories:  80%|███████▉  | 39936/50000 [03:53<00:59, 169.34it/s]Generating trajectories:  80%|████████  | 40192/50000 [03:55<00:57, 169.58it/s]Generating trajectories:  81%|████████  | 40448/50000 [03:56<00:56, 169.64it/s]Generating trajectories:  81%|████████▏ | 40704/50000 [03:58<00:54, 169.78it/s]Generating trajectories:  82%|████████▏ | 40960/50000 [03:59<00:53, 169.81it/s]Generating trajectories:  82%|████████▏ | 41216/50000 [04:01<00:51, 169.81it/s]Generating trajectories:  83%|████████▎ | 41472/50000 [04:02<00:50, 169.76it/s]Generating trajectories:  83%|████████▎ | 41728/50000 [04:04<00:48, 169.87it/s]Generating trajectories:  84%|████████▍ | 41984/50000 [04:05<00:47, 169.87it/s]Generating trajectories:  84%|████████▍ | 42240/50000 [04:07<00:45, 169.75it/s]Generating trajectories:  85%|████████▍ | 42496/50000 [04:08<00:44, 169.79it/s]Generating trajectories:  86%|████████▌ | 42752/50000 [04:10<00:42, 169.76it/s]Generating trajectories:  86%|████████▌ | 43008/50000 [04:11<00:41, 169.83it/s]Generating trajectories:  87%|████████▋ | 43264/50000 [04:13<00:39, 169.83it/s]Generating trajectories:  87%|████████▋ | 43520/50000 [04:14<00:38, 169.82it/s]Generating trajectories:  88%|████████▊ | 43776/50000 [04:16<00:36, 169.76it/s]Generating trajectories:  88%|████████▊ | 44032/50000 [04:17<00:35, 169.79it/s]Generating trajectories:  89%|████████▊ | 44288/50000 [04:19<00:33, 169.84it/s]Generating trajectories:  89%|████████▉ | 44544/50000 [04:20<00:32, 169.96it/s]Generating trajectories:  90%|████████▉ | 44800/50000 [04:22<00:30, 169.83it/s]Generating trajectories:  90%|█████████ | 45056/50000 [04:23<00:29, 169.84it/s]Generating trajectories:  91%|█████████ | 45312/50000 [04:25<00:27, 169.83it/s]Generating trajectories:  91%|█████████ | 45568/50000 [04:26<00:26, 169.88it/s]Generating trajectories:  92%|█████████▏| 45824/50000 [04:28<00:24, 169.87it/s]Generating trajectories:  92%|█████████▏| 46080/50000 [04:29<00:23, 169.93it/s]Generating trajectories:  93%|█████████▎| 46336/50000 [04:31<00:21, 169.81it/s]Generating trajectories:  93%|█████████▎| 46592/50000 [04:32<00:20, 169.89it/s]Generating trajectories:  94%|█████████▎| 46848/50000 [04:34<00:18, 169.90it/s]Generating trajectories:  94%|█████████▍| 47104/50000 [04:35<00:17, 169.88it/s]Generating trajectories:  95%|█████████▍| 47360/50000 [04:37<00:15, 169.46it/s]Generating trajectories:  95%|█████████▌| 47616/50000 [04:38<00:14, 169.55it/s]Generating trajectories:  96%|█████████▌| 47872/50000 [04:40<00:12, 169.59it/s]Generating trajectories:  96%|█████████▋| 48128/50000 [04:41<00:11, 169.52it/s]Generating trajectories:  97%|█████████▋| 48384/50000 [04:43<00:09, 169.65it/s]Generating trajectories:  97%|█████████▋| 48640/50000 [04:44<00:08, 169.63it/s]Generating trajectories:  98%|█████████▊| 48896/50000 [04:46<00:06, 169.81it/s]Generating trajectories:  98%|█████████▊| 49152/50000 [04:47<00:04, 169.89it/s]Generating trajectories:  99%|█████████▉| 49408/50000 [04:49<00:03, 169.91it/s]Generating trajectories:  99%|█████████▉| 49664/50000 [04:50<00:01, 169.84it/s]Generating trajectories: 100%|█████████▉| 49920/50000 [04:52<00:00, 169.87it/s]Generating trajectories: 100%|██████████| 50000/50000 [04:52<00:00, 168.19it/s]Generating trajectories: 100%|██████████| 50000/50000 [04:52<00:00, 170.67it/s]
+
+Generation complete!
+  Total trajectories: 50000
+  Batches: 196
+  Output: /scratch2/jiwan_chung/layerdistill/results/trajectories
+  Metadata: /scratch2/jiwan_chung/layerdistill/results/trajectories/metadata.json
+
+[08:29:41] Trajectory generation complete!
+  Output: /scratch2/jiwan_chung/layerdistill/results/trajectories
+
+[08:29:41] ========== STEP 3: Train Student ==========
+
+W0120 08:29:42.750000 68582 site-packages/torch/distributed/run.py:803] 
+W0120 08:29:42.750000 68582 site-packages/torch/distributed/run.py:803] *****************************************
+W0120 08:29:42.750000 68582 site-packages/torch/distributed/run.py:803] Setting OMP_NUM_THREADS environment variable for each process to be 1 in default, to avoid your system being overloaded, please further tune the variable for optimal performance in your application as needed. 
+W0120 08:29:42.750000 68582 site-packages/torch/distributed/run.py:803] *****************************************
+============================================================
+Unrolled SiT - Distillation Training
+============================================================
+World size: 2 GPUs
+Model: small
+Trajectories: /scratch2/jiwan_chung/layerdistill/results/trajectories
+Batch size: 128 (per GPU) x 2 = 256 (total)
+Epochs: 100
+Learning rate: 0.0001
+Loss weighting: uniform
+Log directory: /scratch2/jiwan_chung/layerdistill/results/student
+============================================================
+Model parameters: 32,527,920
+Loaded metadata: 50000 samples, 12 steps
+Loss weights: ['0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833', '0.0833']
+Loaded metadata: 50000 samples, 12 steps
+TeacherTrajectoryDataset: 50000 samples from 196 files
+Dataset size: 50,000
+Batches per epoch: 195
+TeacherTrajectoryDataset: 50000 samples from 196 files
+Epoch 1/100:   0%|          | 0/195 [00:00<?, ?it/s]/home/jiwan_chung/layerdistill/SiT/train_ddp.py:285: UserWarning: Using a target size (torch.Size([12, 3, 32, 32])) that is different to the input size (torch.Size([128, 3, 32, 32])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  layer_loss = F.mse_loss(pred, target)
+/home/jiwan_chung/layerdistill/SiT/train_ddp.py:285: UserWarning: Using a target size (torch.Size([12, 3, 32, 32])) that is different to the input size (torch.Size([128, 3, 32, 32])). This will likely lead to incorrect results due to broadcasting. Please ensure they have the same size.
+  layer_loss = F.mse_loss(pred, target)
+Epoch 1/100:   0%|          | 0/195 [00:03<?, ?it/s]
+[rank0]: Traceback (most recent call last):
+[rank0]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 425, in <module>
+[rank0]:     main()
+[rank0]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 421, in main
+[rank0]:     train(args)
+[rank0]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 285, in train
+[rank0]:     layer_loss = F.mse_loss(pred, target)
+[rank0]:                  ^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/nn/functional.py", line 3864, in mse_loss
+[rank0]:     expanded_input, expanded_target = torch.broadcast_tensors(input, target)
+[rank0]:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]:   File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/functional.py", line 77, in broadcast_tensors
+[rank0]:     return _VF.broadcast_tensors(tensors)  # type: ignore[attr-defined]
+[rank0]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank0]: RuntimeError: The size of tensor a (128) must match the size of tensor b (12) at non-singleton dimension 0
+[rank1]: Traceback (most recent call last):
+[rank1]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 425, in <module>
+[rank1]:     main()
+[rank1]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 421, in main
+[rank1]:     train(args)
+[rank1]:   File "/home/jiwan_chung/layerdistill/SiT/train_ddp.py", line 285, in train
+[rank1]:     layer_loss = F.mse_loss(pred, target)
+[rank1]:                  ^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/nn/functional.py", line 3864, in mse_loss
+[rank1]:     expanded_input, expanded_target = torch.broadcast_tensors(input, target)
+[rank1]:                                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]:   File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/functional.py", line 77, in broadcast_tensors
+[rank1]:     return _VF.broadcast_tensors(tensors)  # type: ignore[attr-defined]
+[rank1]:            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+[rank1]: RuntimeError: The size of tensor a (128) must match the size of tensor b (12) at non-singleton dimension 0
+[rank0]:[W120 08:29:52.655870684 ProcessGroupNCCL.cpp:1524] Warning: WARNING: destroy_process_group() was not called before program exit, which can leak resources. For more info, please see https://pytorch.org/docs/stable/distributed.html#shutdown (function operator())
+W0120 08:29:54.084000 68582 site-packages/torch/distributed/elastic/multiprocessing/api.py:908] Sending process 68627 closing signal SIGTERM
+E0120 08:29:54.100000 68582 site-packages/torch/distributed/elastic/multiprocessing/api.py:882] failed (exitcode: 1) local_rank: 1 (pid: 68628) of binary: /home/jiwan_chung/micromamba/envs/ld/bin/python3.12
+Traceback (most recent call last):
+  File "/home/jiwan_chung/micromamba/envs/ld/bin/torchrun", line 7, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/distributed/elastic/multiprocessing/errors/__init__.py", line 357, in wrapper
+    return f(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^
+  File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/distributed/run.py", line 936, in main
+    run(args)
+  File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/distributed/run.py", line 927, in run
+    elastic_launch(
+  File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 156, in __call__
+    return launch_agent(self._config, self._entrypoint, list(args))
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/jiwan_chung/micromamba/envs/ld/lib/python3.12/site-packages/torch/distributed/launcher/api.py", line 293, in launch_agent
+    raise ChildFailedError(
+torch.distributed.elastic.multiprocessing.errors.ChildFailedError: 
+============================================================
+train_ddp.py FAILED
+------------------------------------------------------------
+Failures:
+  <NO_OTHER_FAILURES>
+------------------------------------------------------------
+Root Cause (first observed failure):
+[0]:
+  time      : 2026-01-20_08:29:54
+  host      : node19.localdomain
+  rank      : 1 (local_rank: 1)
+  exitcode  : 1 (pid: 68628)
+  error_file: <N/A>
+  traceback : To enable traceback see: https://pytorch.org/docs/stable/elastic/errors.html
+============================================================
+
+[08:29:54] Student training complete!
+  Checkpoint: /scratch2/jiwan_chung/layerdistill/results/student
+
+============================================================
+  Pipeline complete!
+============================================================
+  Teacher:      /scratch2/jiwan_chung/layerdistill/results/teacher
+  Trajectories: /scratch2/jiwan_chung/layerdistill/results/trajectories
+  Student:      /scratch2/jiwan_chung/layerdistill/results/student
+============================================================
